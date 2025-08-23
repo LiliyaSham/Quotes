@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Случайная цитата</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .quote-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            text-align: center;
+        }
+        .quote-text {
+            font-size: 1.8em;
+            line-height: 1.6;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        .quote-source {
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1em;
+        }
+        .stats {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .btn {
+            padding: 10px 16px;
+            margin: 0 8px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+        .like {
+            background-color: #28a745;
+            color: white;
+        }
+        .dislike {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Случайная цитата</h1>
+
+    <div class="quote-container">
+        <div class="quote-text">{{ quote.text }}</div>
+        <div class="quote-source">— {{ quote.source }}</div>
+    </div>
+
+    <div class="stats">
+        Просмотров: {{ views_count }}
+        <button class="btn like" onclick="like()">👍<span id="like-count">{{ quote.likes }}</span></button>
+        <button class="btn dislike" onclick="dislike()">👎<span id="dislike-count">{{ quote.dislikes }}</span></button>
+    </div>
+
+    <script>
+        // Получаем CSRF-токен из куки
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        function like() {
+            fetch(`/quote/{{ quote.id }}/like/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        alert(err.error);
+                        throw new Error(err.error);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('like-count').textContent = data.likes;
+            })
+            .catch(error => {
+                console.log("Ошибка голосования:", error);
+            });
+        }
+
+
+        function dislike() {
+            fetch(`/quote/{{ quote.id }}/dislike/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        alert(err.error);
+                        throw new Error(err.error);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('dislike-count').textContent = data.dislikes;
+            })
+            .catch(error => {
+                console.log("Ошибка голосования:", error);
+            });
+        }
+    </script>
+
+    <!-- КНОПКА ДОБАВЛЕНИЯ ЦИТАТЫ -->
+    <a href="{% url 'add_quote' %}" style="
+        display: inline-block;
+        margin: 20px 0;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: bold;
+    ">➕ Добавить цитату</a>
+
+    <a href="{% url 'top_quotes' %}" style="
+    display: inline-block;
+    margin: 0 0 0 15px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1em;
+    font-weight: bold;
+    ">⭐ Топ цитат</a>
+</body>
+</html>
