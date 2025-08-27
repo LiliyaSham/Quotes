@@ -15,6 +15,32 @@ from .forms import QuoteForm
 # Create your views here.
 
 def index(request):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Это AJAX-запрос на обновление цитаты
+        quotes = Quote.objects.all()
+        if not quotes.exists():
+            return JsonResponse({'error': 'Нет цитат'}, status=400)
+
+        # Выбираем случайную с учётом веса
+        weighted_quotes = []
+        for q in quotes:
+            weighted_quotes.extend([q] * q.weight)
+
+        quote = random.choice(weighted_quotes)
+
+        # Инкрементируем просмотр
+        quote.views += 1
+        quote.save(update_fields=['views'])
+
+        return JsonResponse({
+            'text': quote.text,
+            'source': quote.source,
+            'likes': quote.likes,
+            'dislikes': quote.dislikes,
+            'views': quote.views,
+        })
+
+    # Обычный запрос, показываем страницу
     key = "random_quote"
     cached_data = cache.get(key)
     if cached_data:
