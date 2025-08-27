@@ -74,7 +74,7 @@
     </div>
 
     <div class="stats">
-        Просмотров: {{ views_count }}
+        Просмотров: <span id="view-count">{{ views_count }}</span>
         <button class="btn like" onclick="like()">👍<span id="like-count">{{ quote.likes }}</span></button>
         <button class="btn dislike" onclick="dislike()">👎<span id="dislike-count">{{ quote.dislikes }}</span></button>
         <button class="btn refresh" onclick="refreshQuote()">🔄 Обновить цитату</button>
