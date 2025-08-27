@@ -56,6 +56,13 @@
         .btn:hover {
             opacity: 0.9;
         }
+        .refresh {
+            background-color: #6c757d;
+            color: white;
+        }
+        .refresh:hover {
+            background-color: #5a6268;
+        }
     </style>
 </head>
 <body>
@@ -70,6 +77,7 @@
         Просмотров: {{ views_count }}
         <button class="btn like" onclick="like()">👍<span id="like-count">{{ quote.likes }}</span></button>
         <button class="btn dislike" onclick="dislike()">👎<span id="dislike-count">{{ quote.dislikes }}</span></button>
+        <button class="btn refresh" onclick="refreshQuote()">🔄 Обновить цитату</button>
     </div>
 
     <script>
@@ -140,6 +148,39 @@
             })
             .catch(error => {
                 console.log("Ошибка голосования:", error);
+            });
+        }
+        function refreshQuote() {
+            // Получаем CSRF-токен
+            const csrftoken = getCookie('csrftoken');
+
+            // Отправляем POST-запрос на сервер, чтобы получить новую цитату
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ action: 'refresh' }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Обновляем текст цитаты
+                document.querySelector('.quote-text').textContent = data.text;
+                // Обновляем источник
+                document.querySelector('.quote-source').textContent = '— ' + data.source;
+                // Обновляем счётчики
+                document.getElementById('like-count').textContent = data.likes;
+                document.getElementById('dislike-count').textContent = data.dislikes;
+                document.getElementById('view-count').textContent = data.views;
+
+                // Сбрасываем состояние кнопок (если нужно)
+                document.querySelector('.like').disabled = false;
+                document.querySelector('.dislike').disabled = false;
+            })
+            .catch(error => {
+                console.error('Ошибка при обновлении цитаты:', error);
+                alert('Не удалось загрузить новую цитату. Попробуйте перезагрузить страницу.');
             });
         }
     </script>
