@@ -160,6 +160,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({ action: 'refresh' }),
             })
