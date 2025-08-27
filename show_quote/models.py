@@ -4,7 +4,7 @@ from django.db import models
 class Quote(models.Model):
     text = models.TextField(verbose_name="Цитата")
     source = models.CharField(max_length=200, verbose_name="Источник (фильм, книга и т.п.)")
-    weight = models.PositiveIntegerField(default=1, verbose_name="Вес (чем выше — тем чаще)")
+    weight = models.PositiveIntegerField(default=1, verbose_name="Вес цитаты (1-10)")
     likes = models.IntegerField(default=0)
     dislikes = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
