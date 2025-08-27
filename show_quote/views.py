@@ -15,13 +15,11 @@ from .forms import QuoteForm
 # Create your views here.
 
 def index(request):
-    # Обработка AJAX-запроса на обновление
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         quotes = Quote.objects.all()
         if not quotes.exists():
             return JsonResponse({'error': 'Нет цитат'}, status=400)
 
-        # Список с учётом веса
         weighted_quotes = []
         for q in quotes:
             weighted_quotes.extend([q] * q.weight)
@@ -42,7 +40,6 @@ def index(request):
             'views': quote.views,
         })
 
-    # Обычный GET-запрос
     key = "random_quote"
     cached_data = cache.get(key)
     if cached_data:
@@ -89,7 +86,6 @@ def add_quote(request):
                 if Quote.objects.filter(source=source).count() >= 3:
                     messages.error(request, f"Нельзя добавить больше 3 цитат из источника '{source}'.")
                 else:
-                    # Сохраняем
                     quote = form.save(commit=False)
                     quote.text = text
                     quote.source = source
@@ -103,7 +99,6 @@ def add_quote(request):
     return render(request, 'show_quote/add.html', {'form': form})
 
 def top_quotes(request):
-    # Получаем топ-10 цитат по лайкам
     top_quotes = Quote.objects.order_by('-likes')[:10]
     context = {
         'top_quotes': top_quotes
@@ -132,7 +127,6 @@ def like_quote(request, quote_id):
             'dislikes': quote.dislikes
         }, status=400)
 
-    # Записываем голос
     Vote.objects.create(
         quote=quote,
         session_id=visitor_id,
@@ -143,7 +137,6 @@ def like_quote(request, quote_id):
 
     response = JsonResponse({'likes': quote.likes, 'dislikes': quote.dislikes})
     if 'visitor_id' not in request.COOKIES:
-        # Устанавливаем куку на 1 год
         response.set_cookie('visitor_id', visitor_id, max_age=365 * 24 * 60 * 60)
     return response
 
