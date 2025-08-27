@@ -100,7 +100,7 @@
         let currentQuoteId = {{ quote.id }};
 
         function like() {
-            fetch(`/quote/{{ quote.id }}/like/`, {
+            fetch(`/quote/${currentQuoteId}/like/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -119,15 +119,17 @@
             })
             .then(data => {
                 document.getElementById('like-count').textContent = data.likes;
+                // ✅ Блокируем кнопки после голоса
+                document.getElementById('like-btn').disabled = true;
+                document.getElementById('dislike-btn').disabled = true;
             })
             .catch(error => {
                 console.log("Ошибка голосования:", error);
             });
         }
 
-
         function dislike() {
-            fetch(`/quote/{{ quote.id }}/dislike/`, {
+            fetch(`/quote/${currentQuoteId}/dislike/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -146,16 +148,18 @@
             })
             .then(data => {
                 document.getElementById('dislike-count').textContent = data.dislikes;
+                // ✅ Блокируем кнопки после голоса
+                document.getElementById('like-btn').disabled = true;
+                document.getElementById('dislike-btn').disabled = true;
             })
             .catch(error => {
                 console.log("Ошибка голосования:", error);
             });
         }
+
         function refreshQuote() {
-            // Получаем CSRF-токен
             const csrftoken = getCookie('csrftoken');
 
-            // Отправляем POST-запрос на сервер, чтобы получить новую цитату
             fetch('/', {
                 method: 'POST',
                 headers: {
@@ -166,7 +170,6 @@
                 body: JSON.stringify({ action: 'refresh' }),
             })
             .then(response => {
-                // Если ответ не OK, попробуем прочитать JSON с ошибкой
                 if (!response.ok) {
                     return response.json().then(data => {
                         throw new Error(data.error || 'Ошибка сервера');
@@ -181,19 +184,28 @@
                     console.error('Ошибка:', data.error);
                     return;
                 }
-                // Обновляем интерфейс
+
+                // ✅ Обновляем интерфейс
                 document.querySelector('.quote-text').textContent = data.text;
                 document.querySelector('.quote-source').textContent = '— ' + data.source;
                 document.getElementById('like-count').textContent = data.likes;
                 document.getElementById('dislike-count').textContent = data.dislikes;
                 document.getElementById('view-count').textContent = data.views;
+
+                // ✅ Обновляем ID текущей цитаты
+                currentQuoteId = data.id;
+
+                // ✅ Сбрасываем состояние кнопок
+                document.getElementById('like-btn').disabled = false;
+                document.getElementById('dislike-btn').disabled = false;
+
+                // ✅ Опционально: убираем подсветку
+                document.getElementById('like-btn').style.opacity = '1';
+                document.getElementById('dislike-btn').style.opacity = '1';
             })
             .catch(error => {
                 console.error('Ошибка при обновлении цитаты:', error);
             });
-            currentQuoteId = data.id;
-            document.getElementById('like-btn').disabled = false;
-            document.getElementById('dislike-btn').disabled = false;
         }
     </script>
 
