@@ -69,14 +69,14 @@
     <h1>Случайная цитата</h1>
 
     <div class="quote-container">
-        <div class="quote-text">{{ quote.text }}</div>
+        <div class="quote-text" data-quote-id="{{ quote.id }}">{{ quote.text }}</div>
         <div class="quote-source">— {{ quote.source }}</div>
     </div>
 
     <div class="stats">
         Просмотров: <span id="view-count">{{ views_count }}</span>
-        <button class="btn like" onclick="like()">👍<span id="like-count">{{ quote.likes }}</span></button>
-        <button class="btn dislike" onclick="dislike()">👎<span id="dislike-count">{{ quote.dislikes }}</span></button>
+        <button class="btn like" onclick="like()" id="like-btn">👍<span id="like-count">{{ quote.likes }}</span></button>
+        <button class="btn dislike" onclick="dislike()" id="dislike-btn">👎<span id="dislike-count">{{ quote.dislikes }}</span></button>
         <button class="btn refresh" onclick="refreshQuote()">🔄 Обновить цитату</button>
     </div>
 
@@ -97,6 +97,7 @@
             return cookieValue;
         }
         const csrftoken = getCookie('csrftoken');
+        let currentQuoteId = {{ quote.id }};
 
         function like() {
             fetch(`/quote/{{ quote.id }}/like/`, {
@@ -190,6 +191,9 @@
             .catch(error => {
                 console.error('Ошибка при обновлении цитаты:', error);
             });
+            currentQuoteId = data.id;
+            document.getElementById('like-btn').disabled = false;
+            document.getElementById('dislike-btn').disabled = false;
         }
     </script>
 

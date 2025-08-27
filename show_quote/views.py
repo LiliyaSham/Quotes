@@ -34,6 +34,7 @@ def index(request):
         quote.save(update_fields=['views'])
 
         return JsonResponse({
+            'id': quote.id,
             'text': quote.text,
             'source': quote.source,
             'likes': quote.likes,
