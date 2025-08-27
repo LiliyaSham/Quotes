@@ -164,24 +164,31 @@
                 },
                 body: JSON.stringify({ action: 'refresh' }),
             })
-            .then(response => response.json())
+            .then(response => {
+                // Если ответ не OK, попробуем прочитать JSON с ошибкой
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Ошибка сервера');
+                    }).catch(e => {
+                        throw new Error('Сервер вернул ошибку: ' + response.status);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
-                // Обновляем текст цитаты
+                if (data.error) {
+                    console.error('Ошибка:', data.error);
+                    return;
+                }
+                // Обновляем интерфейс
                 document.querySelector('.quote-text').textContent = data.text;
-                // Обновляем источник
                 document.querySelector('.quote-source').textContent = '— ' + data.source;
-                // Обновляем счётчики
                 document.getElementById('like-count').textContent = data.likes;
                 document.getElementById('dislike-count').textContent = data.dislikes;
                 document.getElementById('view-count').textContent = data.views;
-
-                // Сбрасываем состояние кнопок (если нужно)
-                document.querySelector('.like').disabled = false;
-                document.querySelector('.dislike').disabled = false;
             })
             .catch(error => {
                 console.error('Ошибка при обновлении цитаты:', error);
-                alert('Не удалось загрузить новую цитату. Попробуйте перезагрузить страницу.');
             });
         }
     </script>

@@ -15,20 +15,21 @@ from .forms import QuoteForm
 # Create your views here.
 
 def index(request):
+    # Обработка AJAX-запроса на обновление
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Это AJAX-запрос на обновление цитаты
         quotes = Quote.objects.all()
         if not quotes.exists():
             return JsonResponse({'error': 'Нет цитат'}, status=400)
 
-        # Выбираем случайную с учётом веса
+        # Список с учётом веса
         weighted_quotes = []
         for q in quotes:
             weighted_quotes.extend([q] * q.weight)
 
-        quote = random.choice(weighted_quotes)
+        if not weighted_quotes:
+            return JsonResponse({'error': 'Нет цитат для отображения'}, status=400)
 
-        # Инкрементируем просмотр
+        quote = random.choice(weighted_quotes)
         quote.views += 1
         quote.save(update_fields=['views'])
 
@@ -40,7 +41,7 @@ def index(request):
             'views': quote.views,
         })
 
-    # Обычный запрос, показываем страницу
+    # Обычный GET-запрос
     key = "random_quote"
     cached_data = cache.get(key)
     if cached_data:
@@ -50,17 +51,17 @@ def index(request):
         if not quotes.exists():
             return HttpResponse("Нет цитат")
 
-        # Список цитат с весом
         weighted_quotes = []
         for q in quotes:
             weighted_quotes.extend([q] * q.weight)
 
+        if not weighted_quotes:
+            return HttpResponse("Нет цитат для отображения")
+
         quote = random.choice(weighted_quotes)
         views_count = getattr(quote, 'views', 0) or 0
+        cache.set(key, (quote, views_count), 10)
 
-        cache.set(key, (quote, views_count), 10)  # кэш на 10 секунд
-
-    # Инкремент просмотров
     quote.views = getattr(quote, 'views', 0) + 1
     quote.save(update_fields=['views'])
 
